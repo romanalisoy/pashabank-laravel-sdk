@@ -55,6 +55,11 @@ abstract class TestCase extends BaseTestCase
             file_put_contents($certFixture, 'not a real certificate — tests only');
         }
 
+        // Testbench skips default app boot steps; set an explicit
+        // encryption key so the `web` middleware (used by our callback
+        // route) can decrypt cookies under test.
+        $app['config']->set('app.key', 'base64:AckfSECXIvnK5r28GVIWUAxmbBSjTsmF11FwwSiC7UY=');
+
         $app['config']->set('database.default', 'testing');
         $app['config']->set('database.connections.testing', [
             'driver' => 'sqlite',

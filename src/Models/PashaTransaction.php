@@ -71,13 +71,11 @@ class PashaTransaction extends Model
         return Amount::toDecimal((int) $this->amount_minor);
     }
 
-    /** @return MorphTo<Model, static> */
     public function payable(): MorphTo
     {
         return $this->morphTo();
     }
 
-    /** @return BelongsTo<PashaRecurring, static> */
     public function recurring(): BelongsTo
     {
         /** @var class-string<PashaRecurring> $model */
@@ -86,7 +84,6 @@ class PashaTransaction extends Model
         return $this->belongsTo($model, 'recurring_id');
     }
 
-    /** @return BelongsTo<static, static> */
     public function parent(): BelongsTo
     {
         return $this->belongsTo(static::class, 'parent_transaction_id', 'transaction_id');

@@ -97,7 +97,7 @@ class PashaBankFake extends PashaBankManager
             }
 
             if ($predicate === null || $predicate($record['parameters']) === true) {
-                Assert::assertTrue(true);
+                Assert::assertNotEmpty($record, 'A matching PASHA Bank request was captured.');
 
                 return $this;
             }
@@ -142,7 +142,6 @@ class PashaBankFake extends PashaBankManager
         $body = method_exists($request, 'body') ? (string) $request->body() : '';
         parse_str($body, $parameters);
 
-        /** @var array<string, mixed> $parameters */
         $command = isset($parameters['command']) ? (string) $parameters['command'] : null;
 
         $this->sentRequests[] = [

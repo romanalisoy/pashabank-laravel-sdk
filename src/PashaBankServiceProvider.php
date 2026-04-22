@@ -27,10 +27,10 @@ final class PashaBankServiceProvider extends ServiceProvider
             /** @var ConfigRepository $config */
             $config = $app->make(ConfigRepository::class);
 
-            /** @var array{timeout: int, connect_timeout: int, verify_ssl: bool, tls_version: string} $http */
+            /** @var array{timeout?: int, connect_timeout?: int, verify_ssl?: bool, tls_version?: string} $http */
             $http = (array) $config->get('pashabank.http', []);
 
-            /** @var array{enabled: bool, channel: string, mask_card_numbers: bool} $logging */
+            /** @var array{enabled?: bool, channel?: string, mask_card_numbers?: bool} $logging */
             $logging = (array) $config->get('pashabank.logging', []);
 
             return new EcommClient(

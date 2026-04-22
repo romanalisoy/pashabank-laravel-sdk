@@ -1,6 +1,7 @@
 {
     "name": "romanalisoy/pashabank-laravel-sdk",
     "description": "Laravel 12/13 SDK for PASHA Bank CardSuite ECOMM (3D-Secure acquiring) integration.",
+    "version": "1.0.0",
     "keywords": [
         "laravel",
         "pashabank",
@@ -47,9 +48,9 @@
         }
     },
     "scripts": {
-        "test": "pest",
-        "test:coverage": "pest --coverage",
-        "analyse": "phpstan analyse",
+        "test": "@php -d extension=pdo_sqlite -d extension=sqlite3 vendor/bin/pest",
+        "test:coverage": "@php -d extension=pdo_sqlite -d extension=sqlite3 vendor/bin/pest --coverage",
+        "analyse": "phpstan analyse --memory-limit=1G",
         "format": "pint"
     },
     "extra": {

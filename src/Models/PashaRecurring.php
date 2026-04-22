@@ -47,13 +47,11 @@ class PashaRecurring extends Model
             ?? config('pashabank.persistence.tables.recurring', 'pashabank_recurring');
     }
 
-    /** @return MorphTo<Model, static> */
     public function owner(): MorphTo
     {
         return $this->morphTo();
     }
 
-    /** @return HasMany<PashaTransaction, static> */
     public function transactions(): HasMany
     {
         /** @var class-string<PashaTransaction> $model */

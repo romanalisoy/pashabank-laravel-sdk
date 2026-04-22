@@ -30,7 +30,7 @@ final class ResultCode
 
     public const REVERSAL_ORIGINAL_NOT_FOUND = '914';
 
-    /** @var array<string, string> */
+    /** @var array<int|string, string> */
     private static array $descriptions = [
         '000' => 'Approved',
         '100' => 'Decline, general, no comments',

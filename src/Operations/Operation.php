@@ -174,8 +174,11 @@ abstract class Operation
 
     protected function fallbackIp(): string
     {
-        if (function_exists('request') && ($ip = request()?->ip()) !== null) {
-            return $ip;
+        if (function_exists('request')) {
+            $ip = request()->ip();
+            if ($ip !== null) {
+                return $ip;
+            }
         }
 
         return '127.0.0.1';

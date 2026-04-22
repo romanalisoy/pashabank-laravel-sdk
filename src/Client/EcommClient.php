@@ -147,7 +147,7 @@ final class EcommClient
 
     private function channel(): LoggerInterface
     {
-        $channel = $this->loggingConfig['channel'] ?? 'stack';
+        $channel = $this->loggingConfig['channel'];
 
         // Fall back to the global logger when the named channel is unknown.
         try {

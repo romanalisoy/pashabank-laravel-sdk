@@ -38,7 +38,7 @@ class Refund extends Operation
 
         $this->events->dispatch(new PaymentRefunded(
             transactionId: $transactionId,
-            amountMinor: $this->amountMinor ?? ($model?->amount_minor ?? 0),
+            amountMinor: $this->amountMinor ?? ($model instanceof PashaTransaction ? $model->amount_minor : 0),
             result: $result,
             transaction: $model,
         ));

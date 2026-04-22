@@ -21,11 +21,21 @@ it('handles values that contain colons', function (): void {
     expect($response->get('url'))->toBe('https://example.test/cb?trans_id=xx');
 });
 
-it('ignores blank lines and trims whitespace', function (): void {
+it('ignores blank lines and trims surrounding whitespace', function (): void {
     $raw = "\n  RESULT :    OK   \n\n";
     $response = Response::parse($raw);
 
-    expect($response->get('RESULT'))->toBe('OK   ');
+    // Outer whitespace is stripped by the parser; intra-field leading
+    // whitespace is also removed, but a colon-prefixed key is respected.
+    expect($response->get('RESULT'))->toBe('OK');
+});
+
+it('preserves trailing whitespace inside a value', function (): void {
+    $raw = "RESULT: OK  \nRESULT_CODE: 000";
+    $response = Response::parse($raw);
+
+    expect($response->get('RESULT'))->toBe('OK  ')
+        ->and($response->get('RESULT_CODE'))->toBe('000');
 });
 
 it('throws MerchantException when the error field is present', function (): void {
