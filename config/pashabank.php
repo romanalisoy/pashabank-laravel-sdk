@@ -90,10 +90,10 @@ return [
 
             'certificate' => [
                 'type' => env('PASHABANK_CERT_TYPE', 'pkcs12'),
-                'path' => env('PASHABANK_CERT_PATH'),
+                'path' => storage_path(env('PASHABANK_CERT_PATH')),
                 'password' => env('PASHABANK_CERT_PASSWORD'),
                 'key_path' => env('PASHABANK_KEY_PATH'),
-                'ca_path' => env('PASHABANK_CA_PATH'),
+                'ca_path' => storage_path(env('PASHABANK_CA_PATH')),
             ],
 
             'language' => env('PASHABANK_LANGUAGE', 'az'),
