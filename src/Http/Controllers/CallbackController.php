@@ -32,15 +32,31 @@ final class CallbackController
             return $this->failure(null, 'Missing trans_id in callback payload.');
         }
 
+        // The bank may inline an error directly in the redirect body, e.g.
+        //   trans_id=...&error=card+authentication+error%3A+Card+not+authenticated
+        // Capture it so the failure response can carry the bank's own
+        // wording. We still call command=c afterwards so server-side state
+        // is authoritative — never trust a browser-mediated POST alone.
+        $bankError = (string) ($request->input('error') ?? '');
+
         try {
             $status = $this->pasha->completion($transactionId)->get();
         } catch (PashaBankException $e) {
-            return $this->failure($transactionId, $e->getMessage());
+            return $this->failure(
+                $transactionId,
+                $bankError !== '' ? $bankError : $e->getMessage()
+            );
         }
 
-        return $status->isSuccessful()
-            ? $this->success($transactionId, $status)
-            : $this->failure($transactionId, $status->description(), $status);
+        if ($status->isSuccessful()) {
+            return $this->success($transactionId, $status);
+        }
+
+        // Prefer the bank's verbatim error if it was supplied; otherwise
+        // fall back to the human description of the result code.
+        $reason = $bankError !== '' ? $bankError : $status->description();
+
+        return $this->failure($transactionId, $reason, $status);
     }
 
     private function success(string $transactionId, TransactionStatus $status): RedirectResponse|JsonResponse
