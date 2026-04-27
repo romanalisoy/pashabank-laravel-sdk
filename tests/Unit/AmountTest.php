@@ -17,11 +17,11 @@ it('converts decimals to minor units', function (int|float|string $input, int $e
     [100.00, 10000],
 ]);
 
-it('formats minor units back to the bank decimal string', function (): void {
-    expect(Amount::toBankString(1980))->toBe('19.80');
-    expect(Amount::toBankString(199))->toBe('1.99');
-    expect(Amount::toBankString(0))->toBe('0.00');
-    expect(Amount::toBankString(100000))->toBe('1000.00');
+it('serialises minor units as an integer string for the bank', function (): void {
+    expect(Amount::toBankString(1980))->toBe('1980');
+    expect(Amount::toBankString(199))->toBe('199');
+    expect(Amount::toBankString(0))->toBe('0');
+    expect(Amount::toBankString(100000))->toBe('100000');
 });
 
 it('rejects negative amounts', function (): void {

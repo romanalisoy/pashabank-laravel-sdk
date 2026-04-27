@@ -45,19 +45,26 @@ final class Amount
     }
 
     /**
-     * Format minor units as the decimal string expected by the bank. Always
-     * two fraction digits, no thousands separators.
+     * Format the amount as the bank expects it on /MerchantHandler:
+     * integer minor units, no decimal separator. The PDF wording "Sum of
+     * transaction. Maximum length 12 symbols" is ambiguous, but the MPI
+     * spec (chapter 5.1) clarifies "payment amount in minimum currency
+     * units" — and the production API rejects decimal-formatted amounts
+     * with `error: wrong amount`.
+     *
+     * 1980 minor → "1980"  (19.80 AZN)
+     * 300 minor  → "300"   (3.00 AZN)
      */
     public static function toBankString(int $minor): string
     {
         $minor = self::guardNonNegative($minor);
-        $decimal = number_format($minor / 100, 2, '.', '');
+        $string = (string) $minor;
 
-        if (strlen($decimal) > self::MAX_DECIMAL_LENGTH) {
-            throw ValidationException::amountTooLarge($decimal);
+        if (strlen($string) > self::MAX_DECIMAL_LENGTH) {
+            throw ValidationException::amountTooLarge($string);
         }
 
-        return $decimal;
+        return $string;
     }
 
     /**

@@ -58,7 +58,8 @@ it('sends the correct command and amount string to the bank', function (): void 
     PashaBank::sms()->amount(19.80)->currency('AZN')->register();
 
     $fake->assertCommandSent('v', function (array $parameters): bool {
-        return $parameters['amount'] === '19.80'
+        // Bank expects integer minor units, not a decimal string.
+        return $parameters['amount'] === '1980'
             && $parameters['currency'] === '944'
             && $parameters['msg_type'] === 'SMS';
     });
