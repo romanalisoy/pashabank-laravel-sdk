@@ -106,12 +106,6 @@ return [
     | HTTP Client
     |--------------------------------------------------------------------------
     |
-    | Curl-level switches that mirror what the integration PDF mandates:
-    |
-    |   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-    |   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, true);
-    |   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    |
     | Defaults match the bank's recommendation. Only relax verify_peer /
     | verify_host while debugging against a self-signed sandbox — never
     | in production, because mTLS without verification is no protection.
