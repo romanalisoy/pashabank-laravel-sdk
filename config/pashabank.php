@@ -35,15 +35,38 @@ return [
     |--------------------------------------------------------------------------
     | Endpoints
     |--------------------------------------------------------------------------
+    |
+    | Both production and testing endpoints respect env overrides. Defaults
+    | match the bank's published URLs from the integration PDF; override
+    | only if the bank issues you a different host (e.g. a dedicated
+    | sandbox or a redirected internal gateway).
+    |
+    | PASHABANK_MERCHANT_URL / PASHABANK_CLIENT_URL apply to whichever
+    | environment is currently active, so a single .env line is enough for
+    | most cases. The *_PROD_URL / *_TEST_URL variants exist for the rare
+    | case of needing to keep both URL sets in the same .env.
+    |
     */
     'endpoints' => [
         'production' => [
-            'merchant_handler' => 'https://ecomm.pashabank.az:18443/ecomm2/MerchantHandler',
-            'client_handler' => 'https://ecomm.pashabank.az:8463/ecomm2/ClientHandler',
+            'merchant_handler' => env(
+                'PASHABANK_MERCHANT_URL_PROD',
+                env('PASHABANK_MERCHANT_URL', 'https://ecomm.pashabank.az:18443/ecomm2/MerchantHandler')
+            ),
+            'client_handler' => env(
+                'PASHABANK_CLIENT_URL_PROD',
+                env('PASHABANK_CLIENT_URL', 'https://ecomm.pashabank.az:8463/ecomm2/ClientHandler')
+            ),
         ],
         'testing' => [
-            'merchant_handler' => env('PASHABANK_MERCHANT_URL'),
-            'client_handler' => env('PASHABANK_CLIENT_URL'),
+            'merchant_handler' => env(
+                'PASHABANK_MERCHANT_URL_TEST',
+                env('PASHABANK_MERCHANT_URL', 'https://testecomm.pashabank.az:18443/ecomm2/MerchantHandler')
+            ),
+            'client_handler' => env(
+                'PASHABANK_CLIENT_URL_TEST',
+                env('PASHABANK_CLIENT_URL', 'https://testecomm.pashabank.az:8463/ecomm2/ClientHandler')
+            ),
         ],
     ],
 
@@ -82,11 +105,27 @@ return [
     |--------------------------------------------------------------------------
     | HTTP Client
     |--------------------------------------------------------------------------
+    |
+    | Curl-level switches that mirror what the integration PDF mandates:
+    |
+    |   curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+    |   curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, true);
+    |   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    |
+    | Defaults match the bank's recommendation. Only relax verify_peer /
+    | verify_host while debugging against a self-signed sandbox — never
+    | in production, because mTLS without verification is no protection.
+    |
+    | return_transfer is exposed for completeness; Laravel's Http facade
+    | already returns the body, so leaving it true is the only sane value.
+    |
     */
     'http' => [
         'timeout' => (int) env('PASHABANK_HTTP_TIMEOUT', 30),
         'connect_timeout' => (int) env('PASHABANK_HTTP_CONNECT_TIMEOUT', 10),
         'verify_ssl' => env('PASHABANK_VERIFY_SSL', true),
+        'verify_host' => env('PASHABANK_VERIFY_HOST', true),
+        'return_transfer' => env('PASHABANK_RETURN_TRANSFER', true),
         'tls_version' => 'TLSv1.2',
     ],
 

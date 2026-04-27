@@ -22,7 +22,7 @@ final class EcommClient
 {
     public function __construct(
         private readonly HttpFactory $http,
-        /** @var array{timeout: int, connect_timeout: int, verify_ssl: bool, tls_version: string} */
+        /** @var array{timeout: int, connect_timeout: int, verify_ssl: bool, verify_host: bool, return_transfer: bool, tls_version: string} */
         private readonly array $httpConfig,
         /** @var array{enabled: bool, channel: string, mask_card_numbers: bool} */
         private readonly array $loggingConfig,
@@ -68,6 +68,13 @@ final class EcommClient
      * are passed as the `cert` option alongside their password; separate
      * PEM cert + key files use `cert` + `ssl_key`.
      *
+     * The PDF mandates these curl options:
+     *   CURLOPT_SSL_VERIFYPEER, CURLOPT_SSL_VERIFYHOST, CURLOPT_RETURNTRANSFER.
+     * They are exposed as separate config flags so a single .env switch can
+     * relax peer-only verification (debugging) without disabling host-name
+     * checks, and the return-transfer flag is set explicitly even though
+     * Laravel's Http facade already requires it.
+     *
      * @return array<string, mixed>
      */
     private function buildCurlOptions(MerchantConfig $merchant): array
@@ -76,6 +83,11 @@ final class EcommClient
             'verify' => $this->resolveVerify($merchant),
             'curl' => [
                 CURLOPT_SSLVERSION => CURL_SSLVERSION_TLSv1_2,
+                CURLOPT_SSL_VERIFYPEER => $this->httpConfig['verify_ssl'],
+                // VERIFYHOST has 3 meaningful states in curl: 0 (off), 2 (full).
+                // Guzzle/curl treat any truthy non-zero as "verify hostname".
+                CURLOPT_SSL_VERIFYHOST => $this->httpConfig['verify_host'] ? 2 : 0,
+                CURLOPT_RETURNTRANSFER => $this->httpConfig['return_transfer'],
             ],
         ];
 
@@ -96,9 +108,19 @@ final class EcommClient
         return $options;
     }
 
+    /**
+     * Translate the two boolean flags (verify_ssl, verify_host) into the
+     * single `verify` option Guzzle understands. Guzzle's option does not
+     * distinguish peer vs. host — so when only one is disabled we have to
+     * disable the high-level option entirely and rely on the curl-level
+     * options injected above to keep the other check active.
+     */
     private function resolveVerify(MerchantConfig $merchant): bool|string
     {
-        if (! $this->httpConfig['verify_ssl']) {
+        $peer = $this->httpConfig['verify_ssl'];
+        $host = $this->httpConfig['verify_host'];
+
+        if (! $peer || ! $host) {
             return false;
         }
 

@@ -27,7 +27,7 @@ final class PashaBankServiceProvider extends ServiceProvider
             /** @var ConfigRepository $config */
             $config = $app->make(ConfigRepository::class);
 
-            /** @var array{timeout?: int, connect_timeout?: int, verify_ssl?: bool, tls_version?: string} $http */
+            /** @var array{timeout?: int, connect_timeout?: int, verify_ssl?: bool, verify_host?: bool, return_transfer?: bool, tls_version?: string} $http */
             $http = (array) $config->get('pashabank.http', []);
 
             /** @var array{enabled?: bool, channel?: string, mask_card_numbers?: bool} $logging */
@@ -39,6 +39,8 @@ final class PashaBankServiceProvider extends ServiceProvider
                     'timeout' => (int) ($http['timeout'] ?? 30),
                     'connect_timeout' => (int) ($http['connect_timeout'] ?? 10),
                     'verify_ssl' => (bool) ($http['verify_ssl'] ?? true),
+                    'verify_host' => (bool) ($http['verify_host'] ?? true),
+                    'return_transfer' => (bool) ($http['return_transfer'] ?? true),
                     'tls_version' => (string) ($http['tls_version'] ?? 'TLSv1.2'),
                 ],
                 loggingConfig: [
