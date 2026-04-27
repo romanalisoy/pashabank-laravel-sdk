@@ -76,6 +76,7 @@ class DmsAuthorization extends Operation
             'description' => $this->description,
             'payable_type' => $this->payable?->getMorphClass(),
             'payable_id' => $this->payable?->getKey(),
+            'meta' => $this->buildMetaForPersistence(),
         ]);
         $model->save();
 

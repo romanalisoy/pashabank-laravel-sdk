@@ -40,6 +40,15 @@ abstract class Operation
 
     protected ?Model $payable = null;
 
+    /** Per-payment override for config('pashabank.callback.success_url'). */
+    protected ?string $returnSuccessUrl = null;
+
+    /** Per-payment override for config('pashabank.callback.failure_url'). */
+    protected ?string $returnFailureUrl = null;
+
+    /** @var array<string, mixed> Free-form metadata persisted on the transaction. */
+    protected array $meta = [];
+
     /** @var array<string, scalar> Arbitrary extras the bank allows. */
     protected array $extraParameters = [];
 
@@ -134,6 +143,44 @@ abstract class Operation
     }
 
     /**
+     * Override the post-callback redirect targets for THIS payment only.
+     * Stored on the transaction's meta column; the CallbackController
+     * reads them back and prefers them over the static config defaults.
+     *
+     * Use this when each payment needs to land on a unique frontend URL —
+     * for example a per-ad receipt page (/ads/42) instead of a single
+     * generic /payment/success.
+     *
+     * Pass null (or omit) to keep the config default for that side.
+     */
+    public function returnUrls(?string $success = null, ?string $failure = null): static
+    {
+        if ($success !== null) {
+            $this->returnSuccessUrl = $success;
+        }
+        if ($failure !== null) {
+            $this->returnFailureUrl = $failure;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Attach arbitrary key/value metadata to be persisted on the
+     * transaction's meta column. Useful for context that listeners or
+     * admin UI need without adding columns: ad id, coupon code, A/B
+     * variant, etc. Merged on repeat calls.
+     *
+     * @param  array<string, mixed>  $meta
+     */
+    public function meta(array $meta): static
+    {
+        $this->meta = array_merge($this->meta, $meta);
+
+        return $this;
+    }
+
+    /**
      * Set any extra query parameter the bank supports. Useful for custom
      * merchant attributes, or to override the default msg_type/terminal_id
      * for a single call.
@@ -215,6 +262,30 @@ abstract class Operation
     {
         return $this->persistence['enabled'] === true
             && $this->persistence['auto_record_transactions'] === true;
+    }
+
+    /**
+     * Compose the meta payload to write onto the transaction record.
+     * Combines free-form ->meta() input with the per-payment return URLs
+     * so the CallbackController can recover both from a single column.
+     *
+     * Returns null when there is nothing to persist, so callers can pass
+     * the result straight into ->fill(['meta' => ...]) without checking.
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function buildMetaForPersistence(): ?array
+    {
+        $meta = $this->meta;
+
+        if ($this->returnSuccessUrl !== null) {
+            $meta['return_success_url'] = $this->returnSuccessUrl;
+        }
+        if ($this->returnFailureUrl !== null) {
+            $meta['return_failure_url'] = $this->returnFailureUrl;
+        }
+
+        return $meta === [] ? null : $meta;
     }
 
     /**

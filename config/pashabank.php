@@ -139,12 +139,48 @@ return [
     */
     'callback' => [
         'enabled' => true,
+
+        // -------------------------------------------------------------
+        // Single-route mode (default)
+        // -------------------------------------------------------------
+        // The bank POSTs a single RETURN_OK_URL. Controller decides
+        // success vs failure by calling command=c. Leave success_route
+        // / failure_route below NULL to use this mode.
         'route' => env('PASHABANK_CALLBACK_ROUTE', '/pashabank/callback'),
         'name' => 'pashabank.callback',
-        'middleware' => ['web'],
+
+        // -------------------------------------------------------------
+        // Split-route mode (optional)
+        // -------------------------------------------------------------
+        // If your merchant is configured with two URLs at the bank, set
+        // both env vars below. Each URL is registered as a route; both
+        // go through the same controller (which still verifies with
+        // command=c so a forged hit cannot mark a payment as paid).
+        //
+        //   PASHABANK_SUCCESS_ROUTE=/api/v1/callbacks/pasha-bank/payment/success
+        //   PASHABANK_FAILURE_ROUTE=/api/v1/callbacks/pasha-bank/payment/failure
+        'success_route' => env('PASHABANK_SUCCESS_ROUTE'),
+        'failure_route' => env('PASHABANK_FAILURE_ROUTE'),
+
+        // -------------------------------------------------------------
+        // Common
+        // -------------------------------------------------------------
+        // For SPA / mobile flows the API endpoint is stateless — drop
+        // 'web' middleware and use 'api'. For server-rendered apps that
+        // need the session-cookie-based 'web' stack, keep the default.
+        'middleware' => array_filter(explode(',', (string) env('PASHABANK_CALLBACK_MIDDLEWARE', 'web'))),
+
+        // 'redirect' (default) → 302 to success_url / failure_url
+        // 'json'              → JSON body, 200 / 422 status code
         'response' => env('PASHABANK_CALLBACK_RESPONSE', 'redirect'),
+
+        // Where to send the user's BROWSER after processing. Can be a
+        // relative path (server-rendered Laravel) or a full URL pointing
+        // to your separate frontend (SPA / mobile webview).
+        // The SDK appends ?trans_id=<id> automatically.
         'success_url' => env('PASHABANK_SUCCESS_URL', '/payment/success'),
         'failure_url' => env('PASHABANK_FAILURE_URL', '/payment/failure'),
+
         'ip_allowlist' => array_filter(explode(',', (string) env('PASHABANK_CALLBACK_IPS', ''))),
     ],
 

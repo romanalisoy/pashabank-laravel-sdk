@@ -125,6 +125,7 @@ class RegisterWithDmsFirstPayment extends Operation
             'payable_type' => $this->payable?->getMorphClass(),
             'payable_id' => $this->payable?->getKey(),
             'recurring_id' => $recurringId,
+            'meta' => $this->buildMetaForPersistence(),
         ]);
         $model->save();
 
